@@ -1,3 +1,5 @@
+import re
+
 from bs4 import BeautifulSoup
 with open('index.html', encoding='utf-8') as file:
     content = file.read()
@@ -37,11 +39,60 @@ soup = BeautifulSoup(content, 'lxml')
 
 """Парсим соц.сети 2 способ(минус в наличии еще доп. ссылок, может не стыковаться с условием отбора,
 поэтому 1 способ точнее)."""
-all_a = soup.find_all('a')
-print(all_a)
+# all_a = soup.find_all('a')
+# print(all_a)
 
-"""Ссылки всегда лежат в href. Достать сслыки из этого тега мы можем при помощи метода get()"""
-for item in all_a:
-    item_text = item.text
-    item_url = item.get("href")
-    print(f"{item_text}: {item_url}")
+"""Ссылки всегда лежат в href. Достать сслыки из этого тега мы можем при помощи метода get().
+Работает с любыми атрибутами(не только ссылки).Здесь парсить можно и без get(), можно просто
+обратиться к атрибуту в списке--item['href']"""
+# for item in all_a:
+#     item_text = item.text
+#     item_url = item.get("href")
+#     print(f"{item_text}: {item_url}")
+
+"""Для перемещения по DOM-дереву есть также еще полезные методы.Например find_parent() и 
+find_parents().Они ищут родителя или родителей эл-ов,т.е.,поднимаются по структуре html-
+дерева (снизу-вверх), а их работа аналогична find и find_all с поправкой, что используются,
+когда нужно подниматься вверх. Это полезно,когда нет определенного класса у блока, но
+есть класс у нужного эл-та,за который можно зацепиться и вытаскивать аналогичные эл-ты.
+В этом примере забирается не все,а только эл-ты до первого родителя"""
+
+# post_div = soup.find(class_='post__text').find_parent()
+# print(post_div)
+
+"""Если в find_parent мы ничего не указываем, то парсим до первого попавшегося родителя,
+а,если указать, то парсится все до него"""
+
+# post_div = soup.find(class_='post__text').find_parent('div', 'user__post')
+# print(post_div)
+
+"""find_parent отрабатывает так,что поднимается до самого верха, включая даже body и
+html-тег"""
+
+# post_divs = soup.find(class_='post__text').find_parents()
+# print(post_divs)
+
+"""Следующими полезными эл-ми яв-ся next_element и previous_element.
+next_element работает достаточно дотошно и выдает все(даже переносы строки,
+что озночает,что на выходе можем получить пустой ответ, соответственно, next_element
+нужно будет вызвать несколько раз.previous_element()-полная противоположность и работает
+снизу-вверх"""
+
+# next_el = soup.find(class_='post__title').next_element.next_element.text
+# print(next_el)
+
+"""Есть похожий метод find_next(), который сразу вернет след. эл-т"""
+# next_el = soup.find(class_='post__title').find_next().text
+# print(next_el)
+
+""".find_next_sibling(), .find_previous_sibling(). Ищут и возвращают следующий
+и предыдущий эл-ты внутри искомого тега.find_previous_sibling()- протипоположный метод"""
+
+# next_sib = soup.find(class_='post__title').find_next_sibling()
+# print(next_sib)
+
+"""Также можно парсить по тексту(text), но есть одна загвоздка. Через text можем распарсить 
+только введя текст блока полностью (а,если текст большой?). ЗДесь на помощь приходит re c методом compile()"""
+
+find_text = soup.find('a', text=re.compile('супер'))
+print(find_text)
