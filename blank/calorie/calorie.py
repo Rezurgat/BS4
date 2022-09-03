@@ -6,6 +6,7 @@
 import requests
 from bs4 import BeautifulSoup
 import json
+import csv
 
 """Сохранение индексной страницы, на которой нах-ся ссылки на категории продуктов"""
 
@@ -58,34 +59,90 @@ with open('calorie//all_products_dict.json', encoding='utf-8') as file:
 """Создам цикл, на каждой итерации которого я буду заходить на новую страницу категории,
 собирать данные и записывать их в файл"""
 
+#iteration_count = int(len(all_categories))-1
 count = 0
 for category_name, category_href in all_categories.items():
-    if count == 0:
-        rep = [',', ' ', '-']
-        for item in rep:
-            if item in category_name:
-                category_name = category_name.replace(item, '_')
 
-        """Запросы на страницы"""
+    rep = [',', ' ', '-']
+    for item in rep:
+        if item in category_name:
+            category_name = category_name.replace(item, '_')
 
-        req = requests.get(url=category_href, headers=headers)
-        src = req.text
+    """Запросы на страницы"""
 
-        """Сохраню страницы под именем категории"""
+    req = requests.get(url=category_href, headers=headers)
+    src = req.text
 
-        with open(f'calorie/data/{count}_{category_name}.html', 'w', encoding='utf-8') as file:
-            file.write(src)
+    """Сохраню страницы под именем категории"""
 
-        with open(f'calorie/data/{count}_{category_name}.html', encoding='utf-8') as file:
-            code = file.read()
+    with open(f'calorie/data/{count}_{category_name}.html', 'w', encoding='utf-8') as file:
+        file.write(src)
 
-        """Создаю объект BS"""
+    with open(f'calorie/data/{count}_{category_name}.html', encoding='utf-8') as file:
+        code = file.read()
 
-        soup = BeautifulSoup(code, 'lxml')
+    """Создаю объект BS"""
 
-        """Cобираю заголовки таблицы"""
+    soup = BeautifulSoup(code, 'lxml')
 
-        table_head = soup.find(class_='mzr-tc-group-table').find('tr').find_all('th')
-        print(table_head)
+    """Проверка страницы на наличие таблицы с продуктами. Если есть пустые страницы, то
+    в коде страницы должен присутствовать alert. Ищу его и прописываю следующее условие"""
 
-        count +=1
+    alert_block = soup.find(class_='uk-alert-danger')
+    if alert_block is not None:
+        continue
+
+    """Cобираю заголовки таблицы"""
+
+    table_head = soup.find(class_='mzr-tc-group-table').find('tr').find_all('th')
+    product = table_head[0].text
+    calories = table_head[1].text
+    proteins = table_head[2].text
+    fats = table_head[3].text
+    carbohydrates = table_head[4].text
+
+    """открываю файл для записи данных таблицы"""
+
+    with open(f'calorie/data/{count}_{category_name}.csv', 'w', encoding='utf-8') as file:
+        writer = csv.writer(file)
+
+        """Указываю writer, что конкретно нужно записывать в файл. Для этого 
+            использую writerow(). Он принимает один аргумент, а, если, нужно больше,
+                    то прописываю следующим образом"""
+
+        writer.writerow(
+            (
+                product,
+                calories,
+                proteins,
+                fats,
+                carbohydrates,
+            )
+        )
+
+    """Собираю данные о продуктах"""
+    products_data = soup.find(class_='mzr-tc-group-table').find('tbody').find_all('tr')
+
+    for item in products_data:
+        product_tds = item.find_all('td')
+        title = product_tds[0].find('a').text
+        calories = product_tds[1].text
+        proteins = product_tds[2].text
+        fats = product_tds[3].text
+        carbohydrates = product_tds[4].text
+
+        with open(f'calorie/data/{count}_{category_name}.csv', 'a', encoding='utf-8') as file:
+            writer = csv.writer(file)
+
+            """Так как нужно до записать файл, то вместо w использую а"""
+
+            writer.writerow(
+                (
+                    title,
+                    calories,
+                    proteins,
+                    fats,
+                    carbohydrates,
+                )
+            )
+    count += 1
