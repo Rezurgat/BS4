@@ -7,7 +7,7 @@ with open('index.html', encoding='utf-8') as file:
 soup = BeautifulSoup(content, 'lxml')
 
 # title = soup.title
-# #print(title)
+# print(title)
 
 """Отображает первый найденный элемент"""
 # page_h1 = soup.find("h1")
@@ -66,7 +66,7 @@ find_parents().Они ищут родителя или родителей эл-�
 # post_div = soup.find(class_='post__text').find_parent('div', 'user__post')
 # print(post_div)
 
-"""find_parent отрабатывает так,что поднимается до самого верха, включая даже body и
+"""find_parents отрабатывает так,что поднимается до самого верха, включая даже body и
 html-тег"""
 
 # post_divs = soup.find(class_='post__text').find_parents()
