@@ -38,6 +38,10 @@ def get_url(url):
     """Далее мне нужно перейти по каждой ссылке, собрать названия, ссылки на логотип, краткое описание, 
      полное описание"""
 
+    for project_url in products_data:
+        req =requests.get(project_url, headers=headers)
+
+
 
 
 get_url('http://www.edutainme.ru/edindex/')
