@@ -51,25 +51,46 @@ for i in range(0, 192, 24):
 
 """После получения ссылок собираю с них информацию"""
 
-for url in fests_urls_list:
+for url in fests_urls_list[0:1]:
     req = requests.get(url=url, headers=headers)
 
     try:
         soup = BeautifulSoup(req.text, 'lxml')
-        fest_info = soup.find('div', class_='top-info-cont')
+        fest_info = soup.find("div", class_="MuiContainer-root MuiContainer-maxWidthFalse css-1krljt2")
 
         """Имя фестиваля"""
 
         fest_name = fest_info.find('h1').text.strip()
 
+
         """Дата фестиваля"""
 
-        fest_date = fest_info.find('h3').text.strip()
+        fest_date = soup.find('div', class_='MuiGrid-root MuiGrid-container css-f3i3nk').find('div', class_='MuiGrid-root MuiGrid-item MuiGrid-grid-xs-11 css-twt0ol').text
+
 
         """Ссылка на локацию, при переходе на которую нужно будет собрать всю 
         необходимую информацию"""
 
-        fest_location = 'https://www.skiddle.com' + fest_info.find('a', class_='tc-white').get('href')
+        fest_location = soup.find('div', class_='MuiBox-root css-107d1jv').find('div', class_='MuiBox-root css-zzbvj8').find_all('iframe')
+        print(fest_location)
+        """Соберу данные контактов и запишу все в файл"""
 
+        q = requests.get(url=fest_location, headers=headers)
+        soup = BeautifulSoup(q.text, 'lxml')
+
+        contact_details = soup.find('h2', string="Venue contact details and info").find_next()
+
+        """Собираю информацию из <p>"""
+
+        items = [item.text for item in contact_details.find_all('p')]
+
+        """Далее нужно разбить нужную информацию в строках, так как изначально получаю их слитыми"""
+
+        for contact_detail in items:
+            print(contact_detail)
     except Exception as ex:
         print('Some error')
+
+
+
+

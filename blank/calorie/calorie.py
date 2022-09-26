@@ -30,20 +30,21 @@ headers = {
 #     file.write(src)
 
 """Открываю полученный файл в режиме чтения и сохраняю в переменную для дальнейшего парсинга"""
-# with open('cal.html', encoding='utf-8') as file:
-#      src = file.read()
-#
-# soup = BeautifulSoup(src, 'lxml')
+with open('cal.html', encoding='utf-8') as file:
+     src = file.read()
+
+soup = BeautifulSoup(src, 'lxml')
 
 """Собираем ссылки на категории c добавлением доменного имени и конкантенацией. После отбора данных,сохраню их в словарь."""
 
-# all_products_dict = {}
-# all_products = soup.find_all(class_='mzr-tc-group-item-href')
-# for item in all_products:
-#     item_text = item.text
-#     item_href = 'https://health-diet.ru' + item.get('href')
-#
-#     all_products_dict[item_text] = [item_href]
+all_products_dict = {}
+all_products = soup.find_all(class_='mzr-tc-group-item-href')
+for item in all_products:
+    item_text = item.text
+    item_href = 'https://health-diet.ru' + item.get('href')
+
+    all_products_dict[item_text] = [item_href]
+print(all_products_dict)
 
 """Сохраню полученный словарь в json-файл. Сохранение в json удобен и сокращает время поиска
 информации в интернете"""
