@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import json
 
+"""Сохранение индексной страницы, на которой нах-ся ссылки на основные коды"""
+
 url = 'https://www.icd10data.com/ICD10CM/Codes'
 
 headers = {
@@ -12,6 +14,8 @@ headers = {
 # req = requests.get(url, headers=headers)
 # src = req.text
 
+"""Сохраняю полученный html в файл."""
+
 # with open('codes.html', 'w', encoding='utf-8') as file:
 #     file.write(src)
 
@@ -20,32 +24,74 @@ with open('codes.html', encoding='utf-8') as file:
 
 soup = BeautifulSoup(src, 'lxml')
 
-all_codes_dict = {}
-all_codes = soup.find('div', class_='body-content').find('ul').find_all(class_='identifier')
-for item in all_codes:
+"""Собираю ссылки на категории кодов"""
+
+base_codes_dict = {}
+sub_pages_dict = {}
+base_codes = soup.find('div', class_='body-content').find('ul').find_all(class_='identifier')
+for item in base_codes:
     item_text = item.text
     item_href = 'https://www.icd10data.com' + item.get('href')
-    all_codes_dict[item_text] = [item_href]
+    base_codes_dict[item_text] = [item_href]
 
+"""Сохраняю ссылки и наименования в json для удобства работы"""
+# with open('json/all_codes.json', 'w', encoding='utf-8') as file:
+#     json.dump(base_codes_dict, file, indent=4, ensure_ascii=False)
+#
+with open('json/all_codes.json', encoding='utf-8') as file:
+    codes_categories_json = json.load(file)
 
-# with open('all_codes.json', 'w', encoding='utf-8') as file:
-#     json.dump(all_codes_dict, file, indent=4, ensure_ascii=False)
+"""Прохожу циклом по ссылкам и записываю полученный html страниц в файлы"""
+for code_category_name, code_category_href in codes_categories_json.items():
 
-with open('all_codes.json', encoding='utf-8') as file:
-    codes_categories = json.load(file)
-
-for category_name, category_href in codes_categories.items():
-
-    req = requests.get(url=category_href, headers=headers)
+    req = requests.get(url=code_category_href, headers=headers)
     src = req.text
 
-    # with open(f'data/{category_name}.html', 'w', encoding='utf-8') as file:
+    # with open(f'data/{code_category_name}.html', 'w', encoding='utf-8') as file:
     #     file.write(src)
 
-    with open(f'data/{category_name}.html', encoding='utf-8') as file:
-        page = file.read()
+    with open(f'data/{code_category_name}.html', encoding='utf-8') as file:
+        base = file.read()
 
-    soup = BeautifulSoup(page, 'lxml')
+    """ Создаю объект BS для углубления в сборе информации """
+
+    soup_sub = BeautifulSoup(base, 'lxml')
+
+    """ Собираю код, содержащий название и ссылки подстраниц """
+
+    sub_pages = soup_sub.find('div', class_='body-content').find('ul', class_='i51').find_all(class_='identifier')
+    for sub_item in sub_pages:
+        sub_item_text = sub_item.text
+        sub_item_href = 'https://www.icd10data.com' + sub_item.get('href')
+        sub_pages_dict[sub_item_text] = [sub_item_href]
+
+"""Сохраняю ссылки и наименования подстраниц в json для удобства работы"""
+with open('json/sub_pages.json', 'w', encoding='utf-8') as file:
+    json.dump(sub_pages_dict, file, indent=4, ensure_ascii=False)
+
+with open('json/sub_pages.json', encoding='utf-8') as file:
+    sub_pages_json = json.load(file)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # group_code = soup.find('div', class_='body-content').find('h1', class_='pageHeading').find('span', class_='identifier').text
     # group_desc = soup.find('h1', class_='pageHeading').text.replace(group_code, '')
