@@ -28,6 +28,7 @@ soup = BeautifulSoup(src, 'lxml')
 
 base_codes_dict = {}
 sub_pages_dict = {}
+codes_dict = {}
 base_codes = soup.find('div', class_='body-content').find('ul').find_all(class_='identifier')
 for item in base_codes:
     item_text = item.text
@@ -42,10 +43,11 @@ with open('json/all_codes.json', encoding='utf-8') as file:
     codes_categories_json = json.load(file)
 
 """Прохожу циклом по ссылкам и записываю полученный html страниц в файлы"""
+
 for code_category_name, code_category_href in codes_categories_json.items():
 
-    req = requests.get(url=code_category_href, headers=headers)
-    src = req.text
+    # req = requests.get(url=code_category_href, headers=headers)
+    # src = req.text
 
     # with open(f'data/{code_category_name}.html', 'w', encoding='utf-8') as file:
     #     file.write(src)
@@ -66,11 +68,47 @@ for code_category_name, code_category_href in codes_categories_json.items():
         sub_pages_dict[sub_item_text] = [sub_item_href]
 
 """Сохраняю ссылки и наименования подстраниц в json для удобства работы"""
-with open('json/sub_pages.json', 'w', encoding='utf-8') as file:
-    json.dump(sub_pages_dict, file, indent=4, ensure_ascii=False)
+
+# with open('json/sub_pages.json', 'w', encoding='utf-8') as file:
+#     json.dump(sub_pages_dict, file, indent=4, ensure_ascii=False)
 
 with open('json/sub_pages.json', encoding='utf-8') as file:
     sub_pages_json = json.load(file)
+
+"""Прохожу циклом по ссылкам подстраниц и записываю полученный html страниц в файлы"""
+
+for sub_page_name, sub_page_href in sub_pages_json.items():
+
+    req = requests.get(url=sub_page_href, headers=headers)
+    src = req.text
+
+    with open(f'data/sub_pages/{sub_page_name}.html', 'w', encoding='utf-8') as file:
+        file.write(src)
+
+    with open(f'data/sub_pages/{sub_page_name}.html', encoding='utf-8') as file:
+        sub = file.read()
+
+    """ Создаю объект BS для дальнейшего углубления в сборе информации """
+
+    # soup_codes = BeautifulSoup(sub, 'lxml')
+    #
+    # """ Собираю код, содержащий название и ссылки нужных кодов """
+    #
+    # codes = soup_codes.find('div', class_='body-content').find('ul', class_='i51').find_all('a', class_='identifier')
+    # for code_item in codes:
+    #     code_item_text = code_item.text
+    #     code_item_href = 'https://www.icd10data.com' + code_item.get('href')
+    #     codes_dict[code_item_text] = [code_item_href]
+        # print(code_item_text)
+
+
+
+
+
+
+
+
+
 
 
 
